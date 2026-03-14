@@ -147,6 +147,18 @@
   .inquiry-btn{display:inline-block;margin-top:1.5rem;padding:.8rem 2rem;font-family:var(--sans);font-size:.72rem;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--black);border:1px solid var(--black);background:none;text-decoration:none;transition:all var(--tf);text-align:center;width:100%;cursor:pointer}
   .inquiry-btn:hover{background:var(--black);color:var(--bg)}
 
+  /* SHARE BUTTON */
+  .share-wrapper{margin-top:1rem;position:relative}
+  .share-toggle{font-family:var(--sans);font-size:.65rem;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--text-light);background:none;border:none;cursor:pointer;padding:.3rem 0;transition:color var(--tf);display:flex;align-items:center;gap:.4rem}
+  .share-toggle:hover{color:var(--text)}
+  .share-toggle .plus{font-size:.8rem;transition:transform var(--tf)}
+  .share-wrapper.open .share-toggle .plus{transform:rotate(45deg)}
+  .share-options{max-height:0;overflow:hidden;opacity:0;transition:max-height .4s ease,opacity .3s ease,margin .3s ease;display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:0}
+  .share-wrapper.open .share-options{max-height:60px;opacity:1;margin-top:.6rem}
+  .share-option{font-family:var(--sans);font-size:.6rem;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);background:none;border:1px solid var(--border);border-radius:100px;padding:.35rem .8rem;cursor:pointer;text-decoration:none;transition:all var(--tf);white-space:nowrap}
+  .share-option:hover{border-color:var(--text-muted);color:var(--text)}
+  .share-copied{color:var(--accent) !important;border-color:var(--accent) !important}
+
   /* RESPONSIVE */
   @media(max-width:1024px){
     .masonry{columns:2}
@@ -158,6 +170,7 @@
     .about-page-inner{grid-template-columns:1fr;gap:3rem}
     .about-image::after{right:-1rem;bottom:-1rem;top:1rem;left:1rem}
     .inquiry-btn{margin-top:1rem}
+    .share-wrapper{display:flex;flex-direction:column;align-items:center}
   }
   @media(max-width:768px){
     .nav{padding:1rem 1.5rem}
@@ -292,6 +305,14 @@
         <div><span class="label">Dimensions</span><span class="value" id="lightboxSize"></span></div>
       </div>
       <a class="inquiry-btn" id="lightboxInquiry" href="#">Inquire About This Work</a>
+      <div class="share-wrapper" id="shareWrapper">
+        <button class="share-toggle" id="shareToggle"><span class="plus">+</span> Share</button>
+        <div class="share-options">
+          <button class="share-option" id="shareCopyLink">Copy Link</button>
+          <a class="share-option" id="shareEmail" href="#">Email</a>
+          <a class="share-option" id="shareWhatsapp" href="#" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -525,7 +546,9 @@
     updateLightbox();
   }
 
-  document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+  document.getElementById('lightboxClose').addEventListener('click', function() { closeLightbox(); });
+  // Prevent share area clicks from closing lightbox
+  document.getElementById('shareWrapper').addEventListener('click', function(e) { e.stopPropagation(); });
   document.getElementById('lightboxPrev').addEventListener('click', function() { navigateLightbox(-1); });
   document.getElementById('lightboxNext').addEventListener('click', function() { navigateLightbox(1); });
   lightbox.addEventListener('click', function(e) { if (e.target === lightbox) closeLightbox(); });
@@ -540,6 +563,58 @@
   document.getElementById('lightboxInquiry').addEventListener('click', function(e) {
     e.stopPropagation();
   });
+
+  // Share functionality
+  var shareWrapper = document.getElementById('shareWrapper');
+  var shareToggle = document.getElementById('shareToggle');
+  var shareCopyLink = document.getElementById('shareCopyLink');
+  var shareEmail = document.getElementById('shareEmail');
+  var shareWhatsapp = document.getElementById('shareWhatsapp');
+
+  shareToggle.addEventListener('click', function(e) {
+    e.stopPropagation();
+    shareWrapper.classList.toggle('open');
+  });
+
+  function getShareData() {
+    var visible = getVisiblePaintings();
+    var p = visible[currentLightboxVisibleIndex].painting;
+    var url = window.location.origin + window.location.pathname;
+    var text = p.title + ' by Baldone — ' + p.medium + ', ' + p.year;
+    return { title: p.title, text: text, url: url };
+  }
+
+  shareCopyLink.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var data = getShareData();
+    navigator.clipboard.writeText(data.text + '\n' + data.url).then(function() {
+      shareCopyLink.textContent = 'Copied!';
+      shareCopyLink.classList.add('share-copied');
+      setTimeout(function() {
+        shareCopyLink.textContent = 'Copy Link';
+        shareCopyLink.classList.remove('share-copied');
+      }, 2000);
+    });
+  });
+
+  shareEmail.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var data = getShareData();
+    shareEmail.href = 'mailto:?subject=' + encodeURIComponent(data.title + ' by Baldone') + '&body=' + encodeURIComponent(data.text + '\n\n' + data.url);
+  });
+
+  shareWhatsapp.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var data = getShareData();
+    shareWhatsapp.href = 'https://wa.me/?text=' + encodeURIComponent(data.text + '\n' + data.url);
+  });
+
+  // Close share when lightbox closes
+  var origCloseLightbox = closeLightbox;
+  closeLightbox = function() {
+    shareWrapper.classList.remove('open');
+    origCloseLightbox();
+  };
 
   // =============================================
   // ZOOM / PAN (Desktop: click+mousemove, Mobile: pinch+drag)
