@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baldone - Contemporary Art | Ink & Paper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAFA; --bg-overlay: rgba(250,250,250,0.97);
+    --text: #000000; --text-muted: #555555; --text-light: #999999;
+    --accent: #8B4513; --accent-dark: #6B2F0A; --accent-glow: rgba(139,69,19,0.12);
+    --border: #E5E5E5; --white: #FAFAFA; --black: #000000;
+    --serif: 'Cormorant Garamond','Georgia',serif;
+    --sans: 'DM Sans','Helvetica Neue',sans-serif;
+    --ts: 0.8s cubic-bezier(.25,.46,.45,.94);
+    --tm: 0.5s cubic-bezier(.25,.46,.45,.94);
+    --tf: 0.3s cubic-bezier(.25,.46,.45,.94);
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html{font-size:16px;overflow-x:hidden}
+  body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  ::selection{background:var(--accent);color:var(--white)}
+
+  /* NAV */
+  .nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.5rem 3rem;display:flex;align-items:center;justify-content:flex-end;background:var(--bg-overlay);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid #F0F0F0}
+  .nav-spacer{flex:1}
+  .nav-links{display:flex;gap:2.5rem;list-style:none}
+  .nav-links a{font-family:var(--sans);font-size:.8rem;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);text-decoration:none;position:relative;cursor:pointer;transition:color var(--tf)}
+  .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--accent-dark);transition:width var(--tm)}
+  .nav-links a:hover{color:var(--text)}
+  .nav-links a:hover::after{width:100%}
+  .nav-links a.active{color:var(--text)}
+  .nav-links a.active::after{width:100%}
+  .nav-toggle{display:none;background:none;border:none;cursor:pointer;width:28px;height:20px;position:relative}
+  .nav-toggle span{display:block;width:100%;height:1px;background:var(--text);position:absolute;left:0;transition:all var(--tf)}
+  .nav-toggle span:nth-child(1){top:0}
+  .nav-toggle span:nth-child(2){top:50%}
+  .nav-toggle span:nth-child(3){bottom:0}
+
+  /* PAGES */
+  .page{display:none;min-height:100vh;padding-top:70px;opacity:0;transition:opacity .4s ease}
+  .page.active{display:block}
+  .page.visible{opacity:1}
+
+  /* HERO */
+  .hero{min-height:calc(100vh - 70px);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:4rem 2rem;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;top:calc(50% - 4rem);left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(139,69,19,0.18) 0%,rgba(139,69,19,.09) 35%,transparent 70%);pointer-events:none;animation:glowPulse 6s ease-in-out infinite}
+  @keyframes glowPulse{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}}
+  .hero-title{font-family:var(--serif);font-size:clamp(3.5rem,8vw,7rem);font-weight:300;letter-spacing:.15em;line-height:1;color:var(--text);margin-bottom:1.5rem;opacity:0;transform:translateY(40px);animation:heroReveal 1.2s cubic-bezier(.25,.46,.45,.94) .3s forwards}
+  .hero-subtitle{font-family:var(--sans);font-size:.85rem;font-weight:300;letter-spacing:.4em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3rem;opacity:0;transform:translateY(20px);animation:heroReveal 1s ease .7s forwards}
+  .hero-line{width:1px;height:80px;background:var(--black);opacity:0;animation:heroReveal 1s ease 1s forwards}
+  .hero-scroll{position:absolute;bottom:2rem;font-family:var(--sans);font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;color:var(--text-light);writing-mode:vertical-rl;cursor:pointer;opacity:0;animation:heroReveal 1s ease 1.3s forwards}
+  .hero-scroll::after{content:'';display:block;width:1px;height:30px;background:var(--black);margin:.8rem auto 0;animation:scrollPulse 2s ease-in-out infinite}
+  @keyframes heroReveal{to{opacity:1;transform:translateY(0)}}
+  @keyframes scrollPulse{0%,100%{height:30px;opacity:.3}50%{height:50px;opacity:1}}
+
+  /* FILTER */
+  .filter-section{padding:1.5rem 3rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;border-bottom:1px solid var(--border);position:sticky;top:70px;background:var(--bg-overlay);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:100}
+  .filter-label{font-family:var(--serif);font-size:.9rem;font-style:italic;color:var(--text-light)}
+  .filter-btn{font-family:var(--sans);font-size:.72rem;font-weight:400;letter-spacing:.15em;text-transform:uppercase;padding:.5rem 1.2rem;border:1px solid transparent;border-radius:100px;background:none;color:var(--text-muted);cursor:pointer;transition:all var(--tf)}
+  .filter-btn:hover{border-color:var(--border);color:var(--text)}
+  .filter-btn.active{border-color:var(--accent-dark);color:var(--text);background:rgba(139,69,19,.06)}
+
+  /* SERIES DESCRIPTION */
+  .series-description{max-width:700px;margin:0 auto;padding:0 3rem;text-align:center;max-height:0;overflow:hidden;opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease,max-height .5s ease,padding .5s ease}
+  .series-description.visible{opacity:1;transform:translateY(0);max-height:300px;padding:2.5rem 3rem .5rem}
+  .series-description h2{font-family:var(--serif);font-size:1.8rem;font-weight:400;margin-bottom:.8rem;color:var(--text)}
+  .series-description p{font-family:var(--sans);font-size:.88rem;font-weight:300;line-height:1.8;color:var(--text-muted)}
+
+  /* MASONRY — items are shown/hidden, never removed from DOM */
+  .gallery-section{padding:2rem 3rem 4rem;max-width:1600px;margin:0 auto}
+  .masonry{columns:3;column-gap:30px}
+  .masonry-item{break-inside:avoid;margin-bottom:30px;position:relative;cursor:pointer;overflow:hidden;border-radius:2px;opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease}
+  .masonry-item.visible{opacity:1;transform:translateY(0)}
+  /* Filtered-out items: completely removed from layout flow */
+  .masonry-item.filtered-out{display:none}
+  .masonry-item img{width:100%;display:block;transition:transform var(--ts)}
+  .masonry-item:hover img{transform:scale(1.03)}
+  .masonry-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,10,10,.7) 0%,rgba(10,10,10,0) 50%);opacity:0;transition:opacity var(--tm);display:flex;flex-direction:column;justify-content:flex-end;padding:1.5rem}
+  .masonry-item:hover .masonry-overlay{opacity:1}
+  .masonry-overlay h3{font-family:var(--serif);font-size:1.3rem;font-weight:400;color:var(--white);margin-bottom:.25rem;transform:translateY(10px);transition:transform var(--tm)}
+  .masonry-item:hover .masonry-overlay h3{transform:translateY(0)}
+  .masonry-overlay .overlay-meta{font-family:var(--sans);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.6);transform:translateY(10px);transition:transform var(--tm) .05s}
+  .masonry-item:hover .masonry-overlay .overlay-meta{transform:translateY(0)}
+
+  .gallery-footer{padding:2rem 3rem;border-top:2px solid var(--black);text-align:center;font-size:.7rem;letter-spacing:.1em;color:var(--text-light)}
+
+  /* ABOUT */
+  .about-page-inner{max-width:1100px;margin:0 auto;padding:5rem 3rem 3rem;display:grid;grid-template-columns:1fr 1.1fr;gap:5rem;align-items:start}
+  .about-image{position:relative}
+  .about-image img{width:100%;border-radius:2px}
+  .about-image::after{content:'';position:absolute;top:2rem;left:2rem;right:-2rem;bottom:-2rem;border:2px solid var(--black);border-radius:2px;z-index:-1}
+  .about-text{padding-top:1rem}
+  .about-text .label{font-family:var(--sans);font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;color:var(--text-light);margin-bottom:1.5rem}
+  .about-text h2{font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);font-weight:300;line-height:1.2;margin-bottom:1.5rem}
+  .about-text p{font-size:.9rem;font-weight:300;line-height:1.8;color:var(--text-muted);margin-bottom:1rem}
+  .about-social{margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)}
+  .about-social a{font-family:var(--sans);font-size:.75rem;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--accent-dark);text-decoration:none;transition:color var(--tf)}
+  .about-social a:hover{color:var(--text)}
+
+  /* CONTACT */
+  .contact-page-inner{min-height:calc(100vh - 70px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4rem 2rem}
+  .contact-page-inner .label{font-family:var(--sans);font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;color:var(--text-light);margin-bottom:1.5rem}
+  .contact-page-inner h2{font-family:var(--serif);font-size:clamp(2.5rem,6vw,4.5rem);font-weight:300;margin-bottom:2rem;line-height:1.1}
+  .contact-email{font-family:var(--serif);font-size:1.3rem;font-style:italic;color:var(--accent-dark);text-decoration:none;border-bottom:1px solid transparent;transition:border-color var(--tf);display:inline-block;margin-bottom:2rem}
+  .contact-email:hover{border-color:var(--accent-dark)}
+  .contact-divider{width:1px;height:50px;background:var(--border);margin:.5rem 0}
+  .contact-social{display:flex;gap:2rem;margin-top:1rem}
+  .contact-social a{font-family:var(--sans);font-size:.75rem;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);text-decoration:none;transition:color var(--tf)}
+  .contact-social a:hover{color:var(--text)}
+
+  .page-footer{padding:2rem 3rem;border-top:2px solid var(--black);text-align:center;font-size:.7rem;letter-spacing:.1em;color:var(--text-light)}
+
+  /* LIGHTBOX */
+  .lightbox{position:fixed;inset:0;z-index:5000;background:rgba(250,250,250,.98);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility .5s ease}
+  .lightbox.open{opacity:1;visibility:visible}
+  .lightbox-close{position:absolute;top:1.5rem;right:2rem;background:none;border:none;color:rgba(0,0,0,.35);font-size:1.8rem;cursor:pointer;width:48px;height:48px;display:flex;align-items:center;justify-content:center;transition:color var(--tf),transform var(--tf);font-family:var(--sans);font-weight:300;z-index:10}
+  .lightbox-close:hover{color:var(--black);transform:rotate(90deg)}
+  .lightbox-content{display:flex;align-items:center;gap:3rem;max-width:85vw;width:85vw;max-height:90vh;transform:translateY(20px) scale(.97);transition:transform .5s cubic-bezier(.25,.46,.45,.94)}
+  .lightbox.open .lightbox-content{transform:translateY(0) scale(1)}
+  .lightbox-image{flex:1;max-height:88vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .lightbox-image-wrapper{position:relative;overflow:hidden;cursor:zoom-in;line-height:0}
+  .lightbox-image-wrapper.zoomed{cursor:crosshair}
+  .lightbox-image-wrapper img{max-width:100%;max-height:85vh;object-fit:contain;box-shadow:0 10px 60px rgba(0,0,0,.08);transition:transform .15s ease-out;transform-origin:center center}
+  .zoom-hint{margin-top:1rem;font-family:var(--sans);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(0,0,0,.3);transition:opacity var(--tf)}
+  .lightbox-image-wrapper.zoomed~.zoom-hint{opacity:0}
+  .lightbox-info{width:260px;flex-shrink:0;color:var(--black)}
+  .lightbox-info h2{font-family:var(--serif);font-size:2rem;font-weight:300;margin-bottom:.5rem;line-height:1.2}
+  .lightbox-info .series-tag{font-family:var(--sans);font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;display:block}
+  .lightbox-meta{border-top:1px solid rgba(0,0,0,.1);padding-top:1rem}
+  .lightbox-meta div{display:flex;justify-content:space-between;margin-bottom:.5rem}
+  .lightbox-meta .label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(0,0,0,.35)}
+  .lightbox-meta .value{font-family:var(--serif);font-size:.9rem;color:rgba(0,0,0,.6)}
+  .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(0,0,0,.25);font-size:2.5rem;cursor:pointer;padding:1rem;transition:color var(--tf);font-family:var(--serif);z-index:10}
+  .lightbox-nav:hover{color:var(--black)}
+  .lightbox-prev{left:1rem}
+  .lightbox-next{right:1rem}
+
+  /* INQUIRY BUTTON */
+  .inquiry-btn{display:inline-block;margin-top:1.5rem;padding:.8rem 2rem;font-family:var(--sans);font-size:.72rem;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--black);border:1px solid var(--black);background:none;text-decoration:none;transition:all var(--tf);text-align:center;width:100%}
+  .inquiry-btn:hover{background:var(--black);color:var(--bg)}
+
+  /* RESPONSIVE */
+  @media(max-width:1024px){
+    .masonry{columns:2}
+    .lightbox-content{flex-direction:column;gap:2rem;max-width:95vw;width:95vw}
+    .lightbox-info{width:100%;text-align:center}
+    .lightbox-image-wrapper img{max-height:60vh}
+    .lightbox-meta{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap}
+    .lightbox-meta div{flex-direction:column;align-items:center;gap:.2rem}
+    .about-page-inner{grid-template-columns:1fr;gap:3rem}
+    .about-image::after{right:-1rem;bottom:-1rem;top:1rem;left:1rem}
+    .inquiry-btn{margin-top:1rem}
+  }
+  @media(max-width:768px){
+    .nav{padding:1rem 1.5rem}
+    .nav-links{display:none}
+    .nav-toggle{display:block}
+    .page{padding-top:56px}
+    .hero{min-height:calc(100vh - 56px)}
+    .filter-section{padding:1rem 1.5rem;top:56px;gap:.6rem}
+    .filter-label{display:none}
+    .filter-btn{padding:.4rem .9rem;font-size:.65rem}
+    .gallery-section{padding:1.5rem}
+    .masonry{columns:2;column-gap:20px}
+    .masonry-item{margin-bottom:20px}
+    .masonry-overlay{padding:1rem}
+    .masonry-overlay h3{font-size:1rem}
+    .series-description.visible{padding:1.5rem 1.5rem .5rem}
+    .about-page-inner{padding:3rem 1.5rem}
+    .lightbox-nav{font-size:2rem;padding:.5rem}
+    .lightbox-prev{left:.3rem}
+    .lightbox-next{right:.3rem}
+    .lightbox-close{top:.8rem;right:.8rem}
+    .zoom-hint{display:none}
+  }
+  @media(max-width:480px){
+    .masonry{columns:1}
+    .hero-title{letter-spacing:.08em}
+  }
+
+  .mobile-menu{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;opacity:0;visibility:hidden;transition:opacity .4s ease,visibility .4s ease}
+  .mobile-menu.open{opacity:1;visibility:visible}
+  .mobile-menu a{font-family:var(--serif);font-size:2rem;font-weight:300;color:var(--text);text-decoration:none;letter-spacing:.1em;cursor:pointer}
+  .mobile-menu .mobile-social{display:flex;gap:1.5rem;margin-top:1rem}
+  .mobile-menu .mobile-social a{font-family:var(--sans);font-size:.8rem;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-spacer"></div>
+  <ul class="nav-links">
+    <li><a data-page="work" class="active">Work</a></li>
+    <li><a data-page="about">About</a></li>
+    <li><a data-page="contact">Contact</a></li>
+  </ul>
+  <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a data-page="work" onclick="closeMobile()">Work</a>
+  <a data-page="about" onclick="closeMobile()">About</a>
+  <a data-page="contact" onclick="closeMobile()">Contact</a>
+  <div class="mobile-social"><a href="https://www.instagram.com/baldone_art/" target="_blank" rel="noopener">Instagram</a></div>
+</div>
+
+<!-- WORK -->
+<div class="page active visible" id="page-work">
+  <section class="hero">
+    <h1 class="hero-title">Baldone</h1>
+    <p class="hero-subtitle">Contemporary Art</p>
+    <div class="hero-line"></div>
+    <div class="hero-scroll" id="heroScroll">Scroll</div>
+  </section>
+  <section class="filter-section" id="filterBar">
+    <span class="filter-label">Series -</span>
+    <button class="filter-btn active" data-filter="all">All Works</button>
+    <button class="filter-btn" data-filter="colors">Colors</button>
+    <button class="filter-btn" data-filter="infinite">Infinite</button>
+    <button class="filter-btn" data-filter="love">Love</button>
+    <button class="filter-btn" data-filter="hooponopono">Ho'oponopono</button>
+  </section>
+  <div class="series-description" id="seriesDescription">
+    <h2 id="seriesTitle"></h2>
+    <p id="seriesText"></p>
+  </div>
+  <section class="gallery-section">
+    <div class="masonry" id="masonry"></div>
+  </section>
+  <div class="gallery-footer">&copy; 2026 Baldone. All rights reserved.</div>
+</div>
+
+<!-- ABOUT -->
+<div class="page" id="page-about">
+  <div class="about-page-inner">
+    <div class="about-image">
+      <img src="https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/45e14b4e-27e9-4d85-866f-ad795973c7fd/the+artist.png" alt="Baldone" loading="lazy">
+    </div>
+    <div class="about-text">
+      <div class="label">About the Artist</div>
+      <h2>Baldone</h2>
+      <p>Baldone is a multi-disciplinary artist hailing from France, whose creative journey has been deeply influenced by the cultures of Africa and Asia. Alternating periods of residence between Taiwan, Japan, and Europe helps nurture his repertoire and transcend cultural influences.</p>
+      <p>Baldone's abstract paintings invite viewers to explore recurring themes that have shaped his artistic narrative. His art delves into the places and spaces that individuals explore while on Earth, reflecting his deep-rooted curiosity about our origins. Love and its intricate relationship with time serve as a poignant muse, evoking contemplation on the ephemeral and enduring aspects of human connections.</p>
+      <p>Baldone believes in the spiritual power of art, viewing it as a conduit for healing and collective consciousness. His creations, in their own small way, contribute to the collective journey of humanity, walking down a path towards greater understanding and harmony.</p>
+      <p>Baldone is represented by <a href="https://aetherart.co" target="_blank" rel="noopener" style="color:var(--accent-dark);text-decoration:none;border-bottom:1px solid var(--accent-dark);transition:opacity var(--tf)">Aether Art Gallery</a> in Taipei, where his work is currently on show.</p>
+      <div class="about-social"><a href="https://www.instagram.com/baldone_art/" target="_blank" rel="noopener">Follow on Instagram &rarr;</a></div>
+    </div>
+  </div>
+  <div class="page-footer">&copy; 2026 Baldone. All rights reserved.</div>
+</div>
+
+<!-- CONTACT -->
+<div class="page" id="page-contact">
+  <div class="contact-page-inner">
+    <div class="label">Get in Touch</div>
+    <h2>Let's connect</h2>
+    <a href="mailto:contact@baldone.com" class="contact-email">contact@baldone.com</a>
+    <div class="contact-divider"></div>
+    <div class="contact-social"><a href="https://www.instagram.com/baldone_art/" target="_blank" rel="noopener">Instagram</a></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose">&times;</button>
+  <button class="lightbox-nav lightbox-prev" id="lightboxPrev">&#8249;</button>
+  <button class="lightbox-nav lightbox-next" id="lightboxNext">&#8250;</button>
+  <div class="lightbox-content">
+    <div class="lightbox-image">
+      <div class="lightbox-image-wrapper" id="zoomWrapper"><img id="lightboxImg" src="" alt=""></div>
+      <div class="zoom-hint">Click to zoom &middot; Move to explore</div>
+    </div>
+    <div class="lightbox-info">
+      <h2 id="lightboxTitle"></h2>
+      <span class="series-tag" id="lightboxSeries"></span>
+      <div class="lightbox-meta">
+        <div><span class="label">Medium</span><span class="value" id="lightboxMedium"></span></div>
+        <div><span class="label">Year</span><span class="value" id="lightboxYear"></span></div>
+        <div><span class="label">Dimensions</span><span class="value" id="lightboxSize"></span></div>
+      </div>
+      <a class="inquiry-btn" id="lightboxInquiry" href="#">Inquire About This Work</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // =============================================
+  // PAGE NAVIGATION
+  // =============================================
+  function navigateTo(pageName) {
+    document.querySelectorAll('.page').forEach(function(p) {
+      p.classList.remove('visible');
+      setTimeout(function() { p.classList.remove('active'); }, 300);
+    });
+    setTimeout(function() {
+      var target = document.getElementById('page-' + pageName);
+      target.classList.add('active');
+      window.scrollTo(0, 0);
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() { target.classList.add('visible'); });
+      });
+    }, 300);
+    document.querySelectorAll('.nav-links a').forEach(function(a) {
+      a.classList.toggle('active', a.dataset.page === pageName);
+    });
+  }
+
+  document.querySelectorAll('[data-page]').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      e.preventDefault();
+      var pageName = el.dataset.page;
+      // If clicking "Work" while already on Work page, scroll to gallery
+      if (pageName === 'work' && document.getElementById('page-work').classList.contains('active')) {
+        document.getElementById('filterBar').scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+      navigateTo(pageName);
+      // If navigating TO Work from another page, scroll so filter bar is visible at top
+      if (pageName === 'work') {
+        setTimeout(function() {
+          var filterBar = document.getElementById('filterBar');
+          var navHeight = document.querySelector('.nav').offsetHeight;
+          var filterTop = filterBar.offsetTop - navHeight;
+          window.scrollTo({ top: filterTop, behavior: 'smooth' });
+        }, 450);
+      }
+    });
+  });
+
+  document.getElementById('heroScroll').addEventListener('click', function() {
+    document.getElementById('filterBar').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // =============================================
+  // SERIES DATA
+  // =============================================
+  var seriesInfo = {
+    colors: { title: "Colors", text: "Through these color-centric compositions, Baldone invites us to decipher the unspoken language of his soul and resonance with ours. Employing a limited palette, each canvas is dominated by a specific hue, to depict innermost feelings and sensations. Imagine: what do you hear, see, feel?" },
+    infinite: { title: "Infinite", text: "A series exploring the boundless nature of perception, where forms dissolve and reform at the edges of consciousness. Each piece invites the viewer to look beyond the canvas into something vast and uncontainable." },
+    love: { title: "Love", text: "Raw emotion distilled into gesture and color. This series captures the many facets of love \u2014 tender, fierce, quiet, overwhelming \u2014 through bold compositions and intimate palette choices." },
+    hooponopono: { title: "Ho\u2019oponopono", text: "Inspired by the Hawaiian practice of reconciliation and forgiveness, these works are meditations rendered in layered pigment. Each canvas is an act of release and renewal." }
+  };
+
+  // =============================================
+  // PAINTING DATA
+  // =============================================
+  var paintings = [
+    { id:1,  title:"Color I",        series:"colors",      image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1695265089309-GGC0FLNKKR4J8SHOIZDD/2023091616838.jpg",     medium:"Oil on canvas",         year:"2023", size:"200 \u00d7 150 cm" },
+    { id:2,  title:"Color IV",       series:"colors",      image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1695265032384-84XCT72D5HUNW5JOO536/2023091616846.jpg",     medium:"Oil on canvas",         year:"2023", size:"200 \u00d7 150 cm" },
+    { id:3,  title:"Color VIII",     series:"colors",      image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1702473734595-E79A6R523OWXQHC8ZM4X/20231212-IMG_0301.jpg", medium:"Oil on canvas",         year:"2023", size:"200 \u00d7 150 cm" },
+    { id:4,  title:"Color XII",      series:"colors",      image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1702473995927-KSIQRQ0G2VGA1EBJOYEH/20231212-IMG_0291.jpg", medium:"Acrylic on canvas",     year:"2023", size:"200 \u00d7 150 cm" },
+    { id:5,  title:"Color XIX",      series:"colors",      image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1695265089309-GGC0FLNKKR4J8SHOIZDD/2023091616838.jpg",     medium:"Oil on canvas",         year:"2024", size:"200 \u00d7 150 cm" },
+    { id:6,  title:"Infinite I",     series:"infinite",    image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1695265089309-GGC0FLNKKR4J8SHOIZDD/2023091616838.jpg",     medium:"Mixed media on canvas", year:"2024", size:"200 \u00d7 150 cm" },
+    { id:7,  title:"Infinite III",   series:"infinite",    image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1702473734595-E79A6R523OWXQHC8ZM4X/20231212-IMG_0301.jpg", medium:"Oil on canvas",         year:"2024", size:"200 \u00d7 150 cm" },
+    { id:8,  title:"Infinite V",     series:"infinite",    image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1695265032384-84XCT72D5HUNW5JOO536/2023091616846.jpg",     medium:"Mixed media on canvas", year:"2024", size:"200 \u00d7 150 cm" },
+    { id:9,  title:"Love II",        series:"love",        image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1695265032384-84XCT72D5HUNW5JOO536/2023091616846.jpg",     medium:"Oil on canvas",         year:"2024", size:"200 \u00d7 150 cm" },
+    { id:10, title:"Love V",         series:"love",        image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1702473995927-KSIQRQ0G2VGA1EBJOYEH/20231212-IMG_0291.jpg", medium:"Oil on canvas",         year:"2024", size:"200 \u00d7 150 cm" },
+    { id:11, title:"Ho'oponopono I", series:"hooponopono", image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1702473995927-KSIQRQ0G2VGA1EBJOYEH/20231212-IMG_0291.jpg", medium:"Acrylic on canvas",     year:"2024", size:"200 \u00d7 150 cm" },
+    { id:12, title:"Ho'oponopono II",series:"hooponopono", image:"https://images.squarespace-cdn.com/content/v1/650b2cf68f5e55168b652af4/1702473734595-E79A6R523OWXQHC8ZM4X/20231212-IMG_0301.jpg", medium:"Oil on canvas",         year:"2024", size:"200 \u00d7 150 cm" }
+  ];
+
+  // =============================================
+  // BUILD GALLERY ONCE — then show/hide items
+  // =============================================
+  var masonryEl = document.getElementById('masonry');
+  var seriesDescEl = document.getElementById('seriesDescription');
+  var seriesTitleEl = document.getElementById('seriesTitle');
+  var seriesTextEl = document.getElementById('seriesText');
+  var currentFilter = 'all';
+  var savedScrollY = 0;
+
+  // Build all items once on load
+  paintings.forEach(function(painting, i) {
+    var div = document.createElement('div');
+    div.className = 'masonry-item';
+    div.dataset.series = painting.series;
+    div.dataset.index = i;
+    div.innerHTML = '<img src="' + painting.image + '" alt="' + painting.title + '" loading="lazy">' +
+      '<div class="masonry-overlay"><h3>' + painting.title + '</h3>' +
+      '<span class="overlay-meta">' + painting.size + ' &middot; ' + painting.medium + '</span></div>';
+    div.addEventListener('click', function() { openLightbox(i); });
+    masonryEl.appendChild(div);
+    // Staggered initial reveal
+    setTimeout(function() { div.classList.add('visible'); }, 100 + 80 * i);
+  });
+
+  function applyFilter(filter) {
+    currentFilter = filter;
+
+    // Show series description
+    if (filter === 'all' || !seriesInfo[filter]) {
+      seriesDescEl.classList.remove('visible');
+    } else {
+      seriesTitleEl.textContent = seriesInfo[filter].title;
+      seriesTextEl.textContent = seriesInfo[filter].text;
+      seriesDescEl.classList.remove('visible');
+      void seriesDescEl.offsetWidth;
+      seriesDescEl.classList.add('visible');
+    }
+
+    // Show/hide items — NO DOM removal, no height collapse
+    var allItems = masonryEl.querySelectorAll('.masonry-item');
+    allItems.forEach(function(item) {
+      if (filter === 'all' || item.dataset.series === filter) {
+        item.classList.remove('filtered-out');
+      } else {
+        item.classList.add('filtered-out');
+      }
+    });
+  }
+
+  // Get visible paintings (for lightbox navigation)
+  function getVisiblePaintings() {
+    var result = [];
+    paintings.forEach(function(p, i) {
+      if (currentFilter === 'all' || p.series === currentFilter) {
+        result.push({ painting: p, globalIndex: i });
+      }
+    });
+    return result;
+  }
+
+  document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      applyFilter(btn.dataset.filter);
+      // No scroll jump — items are hidden in place, page height adjusts naturally
+    });
+  });
+
+  // =============================================
+  // LIGHTBOX — saves and restores scroll position
+  // =============================================
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var lightboxTitle = document.getElementById('lightboxTitle');
+  var lightboxSeries = document.getElementById('lightboxSeries');
+  var lightboxMedium = document.getElementById('lightboxMedium');
+  var lightboxYear = document.getElementById('lightboxYear');
+  var lightboxSize = document.getElementById('lightboxSize');
+  var zoomWrapper = document.getElementById('zoomWrapper');
+  var currentLightboxVisibleIndex = 0;
+
+  function openLightbox(globalIndex) {
+    // Save scroll position BEFORE opening
+    savedScrollY = window.scrollY;
+
+    // Find this painting's position among visible paintings
+    var visible = getVisiblePaintings();
+    for (var i = 0; i < visible.length; i++) {
+      if (visible[i].globalIndex === globalIndex) {
+        currentLightboxVisibleIndex = i;
+        break;
+      }
+    }
+    updateLightbox();
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+    zoomWrapper.classList.remove('zoomed');
+    lightboxImg.style.transform = '';
+    // Restore scroll position
+    window.scrollTo(0, savedScrollY);
+  }
+
+  function updateLightbox() {
+    var visible = getVisiblePaintings();
+    var p = visible[currentLightboxVisibleIndex].painting;
+    lightboxImg.src = p.image;
+    lightboxImg.alt = p.title;
+    lightboxTitle.textContent = p.title;
+    var sn = p.series === 'hooponopono' ? "Ho\u2019oponopono" : p.series.charAt(0).toUpperCase() + p.series.slice(1);
+    lightboxSeries.textContent = sn + ' Series';
+    lightboxMedium.textContent = p.medium;
+    lightboxYear.textContent = p.year;
+    lightboxSize.textContent = p.size;
+    // Update inquiry link
+    var inquiryBtn = document.getElementById('lightboxInquiry');
+    inquiryBtn.href = 'mailto:contact@baldone.com?subject=Inquiry%20about%20' + encodeURIComponent(p.title) + '&body=I%20am%20interested%20in%20the%20work%20%22' + encodeURIComponent(p.title) + '%22%20(' + encodeURIComponent(p.medium) + ',%20' + encodeURIComponent(p.year) + ').%20Could%20you%20please%20provide%20more%20information%3F';
+    zoomWrapper.classList.remove('zoomed');
+    lightboxImg.style.transform = '';
+  }
+
+  function navigateLightbox(dir) {
+    var visible = getVisiblePaintings();
+    currentLightboxVisibleIndex = (currentLightboxVisibleIndex + dir + visible.length) % visible.length;
+    updateLightbox();
+  }
+
+  document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+  document.getElementById('lightboxPrev').addEventListener('click', function() { navigateLightbox(-1); });
+  document.getElementById('lightboxNext').addEventListener('click', function() { navigateLightbox(1); });
+  lightbox.addEventListener('click', function(e) { if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', function(e) {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') navigateLightbox(-1);
+    if (e.key === 'ArrowRight') navigateLightbox(1);
+  });
+
+  // =============================================
+  // ZOOM / PAN
+  // =============================================
+  var ZOOM_LEVEL = 2.5;
+  zoomWrapper.addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (zoomWrapper.classList.contains('zoomed')) {
+      zoomWrapper.classList.remove('zoomed');
+      lightboxImg.style.transform = '';
+    } else {
+      zoomWrapper.classList.add('zoomed');
+      panToMouse(e);
+    }
+  });
+  zoomWrapper.addEventListener('mousemove', function(e) {
+    if (!zoomWrapper.classList.contains('zoomed')) return;
+    panToMouse(e);
+  });
+  zoomWrapper.addEventListener('mouseleave', function() {
+    if (!zoomWrapper.classList.contains('zoomed')) return;
+    lightboxImg.style.transform = 'scale(' + ZOOM_LEVEL + ')';
+  });
+  function panToMouse(e) {
+    var rect = zoomWrapper.getBoundingClientRect();
+    var x = (e.clientX - rect.left) / rect.width;
+    var y = (e.clientY - rect.top) / rect.height;
+    var tx = (0.5 - x) * (ZOOM_LEVEL - 1) * 100;
+    var ty = (0.5 - y) * (ZOOM_LEVEL - 1) * 100;
+    lightboxImg.style.transform = 'scale(' + ZOOM_LEVEL + ') translate(' + tx + '%,' + ty + '%)';
+  }
+
+  // =============================================
+  // MOBILE MENU
+  // =============================================
+  var navToggle = document.getElementById('navToggle');
+  var mobileMenu = document.getElementById('mobileMenu');
+  var mobileOpen = false;
+  function toggleMobile() {
+    mobileOpen = !mobileOpen;
+    mobileMenu.classList.toggle('open', mobileOpen);
+    var spans = navToggle.querySelectorAll('span');
+    if (mobileOpen) {
+      spans[0].style.transform='rotate(45deg)'; spans[0].style.top='50%';
+      spans[1].style.opacity='0';
+      spans[2].style.transform='rotate(-45deg)'; spans[2].style.bottom='auto'; spans[2].style.top='50%';
+    } else {
+      spans[0].style.transform=''; spans[0].style.top='0';
+      spans[1].style.opacity='1';
+      spans[2].style.transform=''; spans[2].style.top=''; spans[2].style.bottom='0';
+    }
+  }
+  navToggle.addEventListener('click', toggleMobile);
+  window.closeMobile = function() { if (mobileOpen) toggleMobile(); };
+})();
+</script>
+</body>
+</html>
