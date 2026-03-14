@@ -139,8 +139,12 @@
   .lightbox-next{right:1rem}
 
   /* INQUIRY BUTTON */
-  .inquiry-btn{display:inline-block;margin-top:1.5rem;padding:.8rem 2rem;font-family:var(--sans);font-size:.72rem;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--black);border:1px solid var(--black);background:none;text-decoration:none;transition:all var(--tf);text-align:center;width:100%}
+  .inquiry-btn{display:inline-block;margin-top:1.5rem;padding:.8rem 2rem;font-family:var(--sans);font-size:.72rem;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--black);border:1px solid var(--black);background:none;text-decoration:none;transition:all var(--tf);text-align:center;width:100%;cursor:pointer}
   .inquiry-btn:hover{background:var(--black);color:var(--bg)}
+  .inquiry-btn.copied{background:var(--black);color:var(--bg)}
+  /* COPY TOAST */
+  .copy-toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100%);background:var(--black);color:var(--bg);padding:.8rem 1.5rem;font-family:var(--sans);font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;opacity:0;transition:all .3s ease;z-index:10001;pointer-events:none}
+  .copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
   /* RESPONSIVE */
   @media(max-width:1024px){
@@ -257,7 +261,7 @@
   <div class="contact-page-inner">
     <div class="label">Get in Touch</div>
     <h2>Let's connect</h2>
-    <a href="mailto:contact@baldone.com" class="contact-email">contact@baldone.com</a>
+    <a href="#" class="contact-email" title="Click to copy">contact@baldone.com</a>
     <div class="contact-divider"></div>
     <div class="contact-social"><a href="https://www.instagram.com/baldone_art/" target="_blank" rel="noopener">Instagram</a></div>
   </div>
@@ -281,10 +285,11 @@
         <div><span class="label">Year</span><span class="value" id="lightboxYear"></span></div>
         <div><span class="label">Dimensions</span><span class="value" id="lightboxSize"></span></div>
       </div>
-      <a class="inquiry-btn" id="lightboxInquiry" href="#">Inquire About This Work</a>
+      <button class="inquiry-btn" id="lightboxInquiry">Inquire About This Work</button>
     </div>
   </div>
 </div>
+<div class="copy-toast" id="copyToast"></div>
 
 <script>
 (function() {
@@ -483,13 +488,11 @@
     lightboxMedium.textContent = p.medium;
     lightboxYear.textContent = p.year;
     lightboxSize.textContent = p.size;
-    // Update inquiry link
+    // Update inquiry button data
     var inquiryBtn = document.getElementById('lightboxInquiry');
-    var mailtoUrl = 'mailto:contact@baldone.com?subject=Inquiry%20about%20' + encodeURIComponent(p.title) + '&body=I%20am%20interested%20in%20the%20work%20%22' + encodeURIComponent(p.title) + '%22%20(' + encodeURIComponent(p.medium) + ',%20' + encodeURIComponent(p.year) + ').%20Could%20you%20please%20provide%20more%20information%3F';
-    inquiryBtn.href = mailtoUrl;
-    inquiryBtn.setAttribute('target', '_blank');
-    inquiryBtn.setAttribute('rel', 'noopener');
-    inquiryBtn.onclick = function(e) { e.stopPropagation(); window.open(mailtoUrl, '_blank'); };
+    inquiryBtn.setAttribute('data-title', p.title);
+    inquiryBtn.setAttribute('data-medium', p.medium);
+    inquiryBtn.setAttribute('data-year', p.year);
     zoomWrapper.classList.remove('zoomed');
     lightboxImg.style.transform = '';
   }
@@ -509,6 +512,55 @@
     if (e.key === 'Escape') closeLightbox();
     if (e.key === 'ArrowLeft') navigateLightbox(-1);
     if (e.key === 'ArrowRight') navigateLightbox(1);
+  });
+
+  // =============================================
+  // COPY TO CLIPBOARD HELPER
+  // =============================================
+  function showToast(msg) {
+    var toast = document.getElementById('copyToast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 2500);
+  }
+
+  function copyToClipboard(text, successMsg) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function() {
+        showToast(successMsg);
+      });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast(successMsg);
+    }
+  }
+
+  // Inquiry button — copies email + subject to clipboard
+  document.getElementById('lightboxInquiry').addEventListener('click', function(e) {
+    e.stopPropagation();
+    var btn = this;
+    var title = btn.getAttribute('data-title');
+    var medium = btn.getAttribute('data-medium');
+    var year = btn.getAttribute('data-year');
+    var text = 'contact@baldone.com\n\nSubject: Inquiry about ' + title + '\n\nI am interested in the work "' + title + '" (' + medium + ', ' + year + '). Could you please provide more information?';
+    copyToClipboard(text, 'Email & message copied to clipboard');
+    btn.classList.add('copied');
+    btn.textContent = 'Copied to clipboard ✓';
+    setTimeout(function() {
+      btn.classList.remove('copied');
+      btn.textContent = 'Inquire About This Work';
+    }, 2500);
+  });
+
+  // Contact page email — copies on click
+  document.querySelector('.contact-email').addEventListener('click', function(e) {
+    e.preventDefault();
+    copyToClipboard('contact@baldone.com', 'Email address copied to clipboard');
   });
 
   // =============================================
