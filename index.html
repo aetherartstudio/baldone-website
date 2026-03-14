@@ -485,7 +485,11 @@
     lightboxSize.textContent = p.size;
     // Update inquiry link
     var inquiryBtn = document.getElementById('lightboxInquiry');
-    inquiryBtn.href = 'mailto:contact@baldone.com?subject=Inquiry%20about%20' + encodeURIComponent(p.title) + '&body=I%20am%20interested%20in%20the%20work%20%22' + encodeURIComponent(p.title) + '%22%20(' + encodeURIComponent(p.medium) + ',%20' + encodeURIComponent(p.year) + ').%20Could%20you%20please%20provide%20more%20information%3F';
+    var mailtoUrl = 'mailto:contact@baldone.com?subject=Inquiry%20about%20' + encodeURIComponent(p.title) + '&body=I%20am%20interested%20in%20the%20work%20%22' + encodeURIComponent(p.title) + '%22%20(' + encodeURIComponent(p.medium) + ',%20' + encodeURIComponent(p.year) + ').%20Could%20you%20please%20provide%20more%20information%3F';
+    inquiryBtn.href = mailtoUrl;
+    inquiryBtn.setAttribute('target', '_blank');
+    inquiryBtn.setAttribute('rel', 'noopener');
+    inquiryBtn.onclick = function(e) { e.stopPropagation(); window.open(mailtoUrl, '_blank'); };
     zoomWrapper.classList.remove('zoomed');
     lightboxImg.style.transform = '';
   }
