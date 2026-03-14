@@ -303,6 +303,15 @@
       var target = document.getElementById('page-' + pageName);
       target.classList.add('active');
       window.scrollTo(0, 0);
+      // Re-trigger hero animations when returning to work page
+      if (pageName === 'work') {
+        var heroEls = target.querySelectorAll('.hero-title, .hero-subtitle, .hero-line, .hero-scroll');
+        heroEls.forEach(function(el) {
+          el.style.animation = 'none';
+          el.offsetHeight; // force reflow
+          el.style.animation = '';
+        });
+      }
       requestAnimationFrame(function() {
         requestAnimationFrame(function() { target.classList.add('visible'); });
       });
