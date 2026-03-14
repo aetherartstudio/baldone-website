@@ -578,40 +578,56 @@
   function getShareData() {
     var visible = getVisiblePaintings();
     var p = visible[currentLightboxVisibleIndex].painting;
-    var url = window.location.origin + window.location.pathname;
-    var text = p.title + ' by Baldone — ' + p.medium + ', ' + p.year;
+    var siteUrl = window.location.origin + window.location.pathname;
+    // Build absolute image URL
     var imgUrl = p.image;
-    return { title: p.title, text: text, url: url, imgUrl: imgUrl };
+    if (imgUrl.indexOf('http') !== 0) {
+      imgUrl = window.location.origin + '/' + imgUrl.replace(/^\//, '');
+    }
+    var text = '"' + p.title + '" by Baldone — ' + p.medium + ', ' + p.year + ' (' + p.size + ')';
+    return { title: p.title, text: text, siteUrl: siteUrl, imgUrl: imgUrl, medium: p.medium, year: p.year, size: p.size };
   }
 
+  // Facebook: share the image URL directly so FB scrapes the image
   document.getElementById('shareFacebook').addEventListener('click', function(e) {
     e.stopPropagation();
+    e.preventDefault();
     var data = getShareData();
-    this.href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(data.url) + '&quote=' + encodeURIComponent(data.text);
+    window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(data.imgUrl) + '&quote=' + encodeURIComponent(data.text + '\n' + data.siteUrl), 'fb-share', 'width=600,height=400');
   });
 
+  // Pinterest: passes image URL as media — should show the painting
   document.getElementById('sharePinterest').addEventListener('click', function(e) {
     e.stopPropagation();
+    e.preventDefault();
     var data = getShareData();
-    this.href = 'https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(data.url) + '&media=' + encodeURIComponent(data.imgUrl) + '&description=' + encodeURIComponent(data.text);
+    window.open('https://pinterest.com/pin/create/button/?url=' + encodeURIComponent(data.siteUrl) + '&media=' + encodeURIComponent(data.imgUrl) + '&description=' + encodeURIComponent(data.text), 'pin-share', 'width=750,height=550');
   });
 
+  // Email: opens in new window with image link in body
   document.getElementById('shareEmail').addEventListener('click', function(e) {
     e.stopPropagation();
+    e.preventDefault();
     var data = getShareData();
-    this.href = 'mailto:?subject=' + encodeURIComponent(data.title + ' by Baldone') + '&body=' + encodeURIComponent(data.text + '\n\n' + data.url);
+    var subject = data.title + ' by Baldone';
+    var body = 'I wanted to share this artwork with you:\n\n' + data.text + '\n\nView the painting:\n' + data.imgUrl + '\n\nVisit the artist\'s website:\n' + data.siteUrl;
+    window.open('mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body));
   });
 
+  // WhatsApp: include image URL so it generates a preview
   document.getElementById('shareWhatsapp').addEventListener('click', function(e) {
     e.stopPropagation();
+    e.preventDefault();
     var data = getShareData();
-    this.href = 'https://wa.me/?text=' + encodeURIComponent(data.text + '\n' + data.url);
+    window.open('https://wa.me/?text=' + encodeURIComponent(data.text + '\n\n' + data.imgUrl + '\n' + data.siteUrl), 'wa-share', 'width=600,height=400');
   });
 
+  // X/Twitter: include image URL in tweet
   document.getElementById('shareX').addEventListener('click', function(e) {
     e.stopPropagation();
+    e.preventDefault();
     var data = getShareData();
-    this.href = 'https://x.com/intent/tweet?text=' + encodeURIComponent(data.text) + '&url=' + encodeURIComponent(data.url);
+    window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(data.text) + '&url=' + encodeURIComponent(data.imgUrl), 'x-share', 'width=600,height=400');
   });
 
   // Close share when lightbox closes
