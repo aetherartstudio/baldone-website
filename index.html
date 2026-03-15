@@ -371,16 +371,32 @@
     showPage(pageName);
   }
 
+  // Update nav link underlines to match current page
+  function updateNavLinks(pageName) {
+    document.querySelectorAll('.nav-links a').forEach(function(a) {
+      a.classList.toggle('active', a.dataset.page === pageName);
+    });
+  }
+
   // Handle browser back/forward
   window.addEventListener('popstate', function(e) {
     var hash = window.location.hash;
     var wasLightboxOpen = lightbox.classList.contains('open');
 
+    // Determine the target page from hash
+    var targetPage = 'work';
+    if (hash === '#about') targetPage = 'about';
+    else if (hash === '#contact') targetPage = 'contact';
+    else if (hash.indexOf('#artwork/') === 0) targetPage = 'work';
+
+    // Always update nav underlines immediately
+    updateNavLinks(targetPage);
+
     // If lightbox is open and we're navigating away from an artwork hash
     if (wasLightboxOpen && hash.indexOf('#artwork/') !== 0) {
       closeLightbox(true); // true = from popstate, don't call history.back()
       // If returning to work page, restore scroll position (don't re-show page)
-      if (hash === '#work') {
+      if (hash === '#work' || hash === '' || hash === '#') {
         window.scrollTo(0, savedScrollY);
         return;
       }
