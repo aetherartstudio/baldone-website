@@ -325,7 +325,12 @@
   // =============================================
   // PAGE NAVIGATION
   // =============================================
-  function navigateTo(pageName) {
+  var currentPage = 'work';
+
+  // Core page switch (no history manipulation)
+  function showPage(pageName) {
+    if (pageName === currentPage && document.getElementById('page-' + pageName).classList.contains('active')) return false;
+    currentPage = pageName;
     document.querySelectorAll('.page').forEach(function(p) {
       p.classList.remove('visible');
       setTimeout(function() { p.classList.remove('active'); }, 300);
@@ -334,12 +339,11 @@
       var target = document.getElementById('page-' + pageName);
       target.classList.add('active');
       window.scrollTo(0, 0);
-      // Re-trigger hero animations when returning to work page
       if (pageName === 'work') {
         var heroEls = target.querySelectorAll('.hero-title, .hero-subtitle, .hero-line, .hero-scroll');
         heroEls.forEach(function(el) {
           el.style.animation = 'none';
-          el.offsetHeight; // force reflow
+          el.offsetHeight;
           el.style.animation = '';
         });
       }
@@ -350,7 +354,32 @@
     document.querySelectorAll('.nav-links a').forEach(function(a) {
       a.classList.toggle('active', a.dataset.page === pageName);
     });
+    return true;
   }
+
+  // Navigate with history push (user clicks nav)
+  function navigateTo(pageName) {
+    if (pageName === currentPage && document.getElementById('page-' + pageName).classList.contains('active')) return;
+    var hash = pageName === 'work' ? '' : '#' + pageName;
+    history.pushState({ page: pageName }, '', window.location.pathname + hash);
+    showPage(pageName);
+  }
+
+  // Handle browser back/forward
+  window.addEventListener('popstate', function(e) {
+    var hash = window.location.hash;
+    // If lightbox is open and we're navigating away from an artwork hash
+    if (lightbox.classList.contains('open') && hash.indexOf('#artwork/') !== 0) {
+      closeLightbox(true); // true = from popstate, don't call history.back()
+    }
+    if (hash.indexOf('#artwork/') === 0) {
+      handleDeepLink();
+    } else if (hash === '#about' || hash === '#contact') {
+      showPage(hash.substring(1));
+    } else {
+      showPage('work');
+    }
+  });
 
   document.querySelectorAll('[data-page]').forEach(function(el) {
     el.addEventListener('click', function(e) {
@@ -504,7 +533,7 @@
     return title.toLowerCase().replace(/['']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
-  function openLightbox(globalIndex) {
+  function openLightbox(globalIndex, fromPopstate) {
     // Save scroll position BEFORE opening
     savedScrollY = window.scrollY;
 
@@ -516,7 +545,7 @@
         break;
       }
     }
-    updateLightbox();
+    updateLightbox(!fromPopstate);
     lightbox.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -532,18 +561,22 @@
     return false;
   }
 
-  function closeLightbox() {
+  var closingFromPopstate = false;
+
+  function closeLightbox(fromPopstate) {
     lightbox.classList.remove('open');
     document.body.style.overflow = '';
     zoomWrapper.classList.remove('zoomed');
     lightboxImg.style.transform = '';
-    // Clear the hash without scrolling
-    history.replaceState(null, '', window.location.pathname);
+    if (!fromPopstate) {
+      // User clicked X or overlay — go back in history
+      history.back();
+    }
     // Restore scroll position
     window.scrollTo(0, savedScrollY);
   }
 
-  function updateLightbox() {
+  function updateLightbox(pushHistory) {
     var visible = getVisiblePaintings();
     var p = visible[currentLightboxVisibleIndex].painting;
     lightboxImg.src = p.image;
@@ -560,7 +593,12 @@
     zoomWrapper.classList.remove('zoomed');
     lightboxImg.style.transform = '';
     // Update URL hash for deep linking
-    history.replaceState(null, '', '#artwork/' + toSlug(p.title));
+    var artworkHash = '#artwork/' + toSlug(p.title);
+    if (pushHistory) {
+      history.pushState({ artwork: true }, '', artworkHash);
+    } else {
+      history.replaceState({ artwork: true }, '', artworkHash);
+    }
   }
 
   function navigateLightbox(dir) {
@@ -863,24 +901,24 @@
   window.closeMobile = function() { if (mobileOpen) toggleMobile(); };
 
   // =============================================
-  // DEEP LINK: open artwork from URL hash
+  // DEEP LINK: handle URL hash on load
   // =============================================
   function handleDeepLink() {
     var hash = window.location.hash;
     if (hash.indexOf('#artwork/') === 0) {
-      var slug = hash.substring(9); // remove '#artwork/'
-      // Find the painting whose title matches this slug
+      var slug = hash.substring(9);
       for (var i = 0; i < paintings.length; i++) {
         if (toSlug(paintings[i].title) === slug) {
-          // Small delay to ensure page is fully rendered
           setTimeout(function() { openLightbox(i); }, 500);
           return;
         }
       }
+    } else if (hash === '#about' || hash === '#contact') {
+      showPage(hash.substring(1));
     }
+    // No hash or #work → stays on work page (default)
   }
   handleDeepLink();
-  window.addEventListener('hashchange', handleDeepLink);
 })();
 </script>
 </body>
