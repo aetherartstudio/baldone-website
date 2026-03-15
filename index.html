@@ -116,7 +116,7 @@
   .page-footer{padding:2rem 3rem;border-top:2px solid var(--black);text-align:center;font-size:.7rem;letter-spacing:.1em;color:var(--text-light)}
 
   /* LIGHTBOX */
-  .lightbox{position:fixed;inset:0;z-index:5000;background:rgba(250,250,250,.98);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility .5s ease}
+  .lightbox{position:fixed;inset:0;z-index:5000;background:rgba(250,250,250,.98);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility .5s ease;overscroll-behavior:contain}
   .lightbox.open{opacity:1;visibility:visible}
   .lightbox-close{position:absolute;top:1.5rem;right:2rem;background:rgba(250,250,250,.85);border:1px solid var(--border);border-radius:50%;color:var(--text-muted);font-size:1.4rem;cursor:pointer;width:44px;height:44px;display:flex;align-items:center;justify-content:center;transition:color var(--tf),transform var(--tf),background var(--tf);font-family:var(--sans);font-weight:300;z-index:10;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
   .lightbox-close:hover{color:var(--black);background:rgba(250,250,250,1);transform:rotate(90deg)}
@@ -161,7 +161,7 @@
   /* RESPONSIVE */
   @media(max-width:1024px){
     .masonry{columns:2}
-    .lightbox{overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:flex-start;padding:2rem 0 4rem}
+    .lightbox{overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:flex-start;padding:2rem 0 4rem;overscroll-behavior:contain}
     .lightbox-content{flex-direction:column;gap:2rem;max-width:95vw;width:95vw;max-height:none;margin:auto}
     .lightbox-info{width:100%;text-align:center}
     .lightbox-image-wrapper img{max-height:60vh}
@@ -592,6 +592,9 @@
     updateLightbox(!fromPopstate);
     lightbox.classList.add('open');
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = '-' + savedScrollY + 'px';
   }
 
   // Open lightbox by painting ID (used for deep links)
@@ -610,6 +613,9 @@
   function closeLightbox(fromPopstate) {
     lightbox.classList.remove('open');
     document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
     zoomWrapper.classList.remove('zoomed');
     lightboxImg.style.transform = '';
     if (!fromPopstate) {
