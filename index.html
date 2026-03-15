@@ -371,11 +371,12 @@
     showPage(pageName);
   }
 
-  // Update nav link underlines to match current page
+  // Update nav link underlines to match current page (both desktop and mobile)
   function updateNavLinks(pageName) {
-    document.querySelectorAll('.nav-links a').forEach(function(a) {
+    document.querySelectorAll('[data-page]').forEach(function(a) {
       a.classList.toggle('active', a.dataset.page === pageName);
     });
+    currentPage = pageName;
   }
 
   // Handle browser back/forward
