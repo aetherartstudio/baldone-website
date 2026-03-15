@@ -162,7 +162,8 @@
   /* RESPONSIVE */
   @media(max-width:1024px){
     .masonry{columns:2}
-    .lightbox-content{flex-direction:column;gap:2rem;max-width:95vw;width:95vw}
+    .lightbox{overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:flex-start;padding:2rem 0 4rem}
+    .lightbox-content{flex-direction:column;gap:2rem;max-width:95vw;width:95vw;max-height:none;margin:auto}
     .lightbox-info{width:100%;text-align:center}
     .lightbox-image-wrapper img{max-height:60vh}
     .lightbox-meta{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap}
