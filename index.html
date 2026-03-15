@@ -498,6 +498,11 @@
   var zoomWrapper = document.getElementById('zoomWrapper');
   var currentLightboxVisibleIndex = 0;
 
+  // Generate a URL-friendly slug from a painting title
+  function toSlug(title) {
+    return title.toLowerCase().replace(/['']/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
   function openLightbox(globalIndex) {
     // Save scroll position BEFORE opening
     savedScrollY = window.scrollY;
@@ -515,11 +520,24 @@
     document.body.style.overflow = 'hidden';
   }
 
+  // Open lightbox by painting ID (used for deep links)
+  function openLightboxById(paintingId) {
+    for (var i = 0; i < paintings.length; i++) {
+      if (paintings[i].id === paintingId) {
+        openLightbox(i);
+        return true;
+      }
+    }
+    return false;
+  }
+
   function closeLightbox() {
     lightbox.classList.remove('open');
     document.body.style.overflow = '';
     zoomWrapper.classList.remove('zoomed');
     lightboxImg.style.transform = '';
+    // Clear the hash without scrolling
+    history.replaceState(null, '', window.location.pathname);
     // Restore scroll position
     window.scrollTo(0, savedScrollY);
   }
@@ -540,6 +558,8 @@
     inquiryBtn.href = 'mailto:contact@baldone.com?subject=Inquiry%20about%20' + encodeURIComponent(p.title) + '&body=I%20am%20interested%20in%20the%20work%20%22' + encodeURIComponent(p.title) + '%22%20(' + encodeURIComponent(p.medium) + ',%20' + encodeURIComponent(p.year) + ').%20Could%20you%20please%20provide%20more%20information%3F';
     zoomWrapper.classList.remove('zoomed');
     lightboxImg.style.transform = '';
+    // Update URL hash for deep linking
+    history.replaceState(null, '', '#artwork/' + toSlug(p.title));
   }
 
   function navigateLightbox(dir) {
@@ -576,13 +596,14 @@
   function getShareData() {
     var visible = getVisiblePaintings();
     var p = visible[currentLightboxVisibleIndex].painting;
-    var siteUrl = window.location.origin + window.location.pathname;
+    // Use the artwork-specific deep link URL
+    var artworkUrl = window.location.origin + window.location.pathname + '#artwork/' + toSlug(p.title);
     var imgUrl = p.image;
     if (imgUrl.indexOf('http') !== 0) {
       imgUrl = window.location.origin + '/' + imgUrl.replace(/^\//, '');
     }
     var text = '"' + p.title + '" by Baldone — ' + p.medium + ', ' + p.year + ' (' + p.size + ')';
-    return { title: p.title, text: text, siteUrl: siteUrl, imgUrl: imgUrl, medium: p.medium, year: p.year, size: p.size };
+    return { title: p.title, text: text, siteUrl: artworkUrl, imgUrl: imgUrl, medium: p.medium, year: p.year, size: p.size };
   }
 
   // On mobile: use Web Share API with the actual image file
@@ -839,6 +860,26 @@
   }
   navToggle.addEventListener('click', toggleMobile);
   window.closeMobile = function() { if (mobileOpen) toggleMobile(); };
+
+  // =============================================
+  // DEEP LINK: open artwork from URL hash
+  // =============================================
+  function handleDeepLink() {
+    var hash = window.location.hash;
+    if (hash.indexOf('#artwork/') === 0) {
+      var slug = hash.substring(9); // remove '#artwork/'
+      // Find the painting whose title matches this slug
+      for (var i = 0; i < paintings.length; i++) {
+        if (toSlug(paintings[i].title) === slug) {
+          // Small delay to ensure page is fully rendered
+          setTimeout(function() { openLightbox(i); }, 500);
+          return;
+        }
+      }
+    }
+  }
+  handleDeepLink();
+  window.addEventListener('hashchange', handleDeepLink);
 })();
 </script>
 </body>
